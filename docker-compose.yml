@@ -1,0 +1,14 @@
+services:
+  remotion-render:
+    image: 3n8/alpine-remotion-render:latest
+    restart: always
+    user: "${PUID}:${PGID}"
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=${UMASK}
+      - TZ=${TZ}
+    volumes:
+      - ${DOCKER_HOME}/remotion-render:/config

@@ -16,6 +16,16 @@ EOF
 
 source '/etc/image-build-info'
 
+if [[ -z "${TZ}" ]]; then
+    export TZ="UTC"
+fi
+
+if [[ -f "/usr/share/zoneinfo/${TZ}" ]]; then
+    ln -sf "/usr/share/zoneinfo/${TZ}" /etc/localtime 2>/dev/null || true
+fi
+
+echo "[info] Timezone set to '${TZ}'" | ts '%Y-%m-%d %H:%M:%.S'
+
 echo "[info] System information: $(uname -a)" | ts '%Y-%m-%d %H:%M:%.S'
 echo "[info] Image architecture: '${TARGETARCH}'" | ts '%Y-%m-%d %H:%M:%.S'
 echo "[info] Base image: '${BASE_RELEASE_TAG}'" | ts '%Y-%m-%d %H:%M:%.S'
@@ -84,8 +94,29 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
-echo "[info] Starting Supervisor..." | ts '%Y-%m-%d %H:%M:%.S'
+echo "[info] Setting up Remotion directories..." | ts '%Y-%m-%d %H:%M:%.S'
+mkdir -p /config/projects
+mkdir -p /config/renders
+mkdir -p /config/compositions
+mkdir -p /config/remotion
+
+if [[ ! -f /config/remotion/config.json ]]; then
+    echo "[info] Creating default Remotion config..." | ts '%Y-%m-%d %H:%M:%.S'
+    cat > /config/remotion/config.json << 'EOF'
+{
+  "outDir": "/config/renders",
+  "projectDir": "/config/projects",
+  "compositionDir": "/config/compositions",
+  "ffmpegBinary": "/usr/bin/ffmpeg",
+  "ffprobeBinary": "/usr/bin/ffprobe"
+}
+EOF
+else
+    echo "[info] Remotion config already exists, skipping..." | ts '%Y-%m-%d %H:%M:%.S'
+fi
+
+echo "[info] Starting Supervisor as user 'nobody'..." | ts '%Y-%m-%d %H:%M:%.S'
 
 exec 1>&3 2>&4
 
-exec /usr/bin/supervisord -c /etc/supervisord.conf -n
+exec /usr/bin/gosu nobody /usr/bin/supervisord -c /etc/supervisord.conf -n
