@@ -11,6 +11,10 @@ A lightweight Alpine-based Docker image for server-side video rendering using Re
 - **Supervisor** - Process management with logging
 - **User/Group Mapping** - Run as any UID:GID via docker-compose user: directive
 
+## What is this?
+
+This container provides a Node.js + FFmpeg environment for rendering videos using Remotion. It runs as an API server - clients on your LAN send HTTP requests to trigger renders, and the rendered video is returned in the response or saved to a mounted path.
+
 ## Environment Variables
 
 | Variable | Default | Description |
@@ -24,24 +28,26 @@ The `user:` directive in docker-compose handles UID/GID - no environment variabl
 
 | Volume | Description |
 |--------|-------------|
-| `/config` | Persistent data (projects, renders, compositions, logs) |
-
-All Remotion data is stored under `/config`:
-- `/config/projects` - Remotion project files
-- `/config/renders` - Rendered output videos
-- `/config/compositions` - Composition definitions
-- `/config/remotion` - Remotion configuration
-- `/config/supervisord.log` - Container logs
+| `/config` | Persistent data (logs, configs) |
 
 ## GPU Support
 
 This image supports hardware-accelerated encoding via VAAPI. The GPU drivers come from the **Docker host**, not the container.
 
-### Supported GPUs
+### Host Requirements
 
-- **AMD** - RX 7800 XT, RDNA/RDNA2/RDNA3 architectures
-- **Intel** - Quick Sync Video (QSV) integrated GPUs
-- **NVIDIA** - Via VDPAU (limited) or NVENC (requires nvidia-container-toolkit)
+**AMD GPUs:**
+- `amdgpu` kernel module loaded
+- `/dev/dri` device available
+- Mesa drivers installed
+
+**Intel GPUs:**
+- `i915` kernel module loaded
+- `/dev/dri` device available
+
+**NVIDIA GPUs:**
+- `nvidia-container-toolkit` installed
+- `nvidia-smi` works on host
 
 ### Docker Compose with GPU
 
@@ -67,34 +73,43 @@ The container logs will show:
 - DRI devices found (if GPU passthrough is enabled)
 - VAAPI driver info
 
-### Running Remotion Commands
+## API Usage
+
+This container runs a Remotion render server. To render videos, your client applications make HTTP requests to the server.
+
+### Basic Workflow
+
+1. Start the container with your Remotion project mounted
+2. Your application sends render requests to the server
+3. The server renders the video using FFmpeg with GPU acceleration
+4. The rendered video is returned in the response or saved to a path
+
+### Testing the API
 
 ```bash
-# Enter the container
-docker exec -it remotion-render /bin/bash
+# List available compositions
+curl http://localhost:8000/
 
-# Check FFmpeg with VAAPI
-ffmpeg -hide_banner -encoders | grep vaapi
-
-# Render a composition
-npx remotion render --input-dir=/config/projects --output=/config/renders MyComposition
+# Render a composition (depends on your project setup)
+curl -X POST http://localhost:8000/render \
+  -H "Content-Type: application/json" \
+  -d '{"compositionId": "MyComposition", "codec": "h264"}'
 ```
 
-## Configuration
+### Custom Render Script
 
-On first run, a default `config.json` is created in `/config/remotion/`:
+Mount a custom render script in your project and call it via the API. The script uses `@remotion/renderer` to render videos:
 
-```json
-{
-  "outDir": "/config/renders",
-  "projectDir": "/config/projects",
-  "compositionDir": "/config/compositions",
-  "ffmpegBinary": "/usr/bin/ffmpeg",
-  "ffprobeBinary": "/usr/bin/ffprobe"
-}
+```javascript
+import {renderMedia} from '@remotion/renderer';
+
+await renderMedia({
+  codec: 'h264',
+  composition,
+  serveUrl: yourBundledProject,
+  outputLocation: 'path/to/output.mp4',
+});
 ```
-
-If this file already exists, it will not be overwritten.
 
 ## Building
 

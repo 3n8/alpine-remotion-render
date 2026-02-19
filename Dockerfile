@@ -32,7 +32,5 @@ RUN echo "export BASE_RELEASE_TAG=${RELEASETAG}" > /etc/image-build-info && \
     echo "export TARGETARCH=${TARGETARCH}" >> /etc/image-build-info && \
     echo "export APPNAME=${APPNAME}" >> /etc/image-build-info
 
-RUN mkdir -p /config/projects /config/renders /config/compositions
-
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/usr/bin/init.sh"]
