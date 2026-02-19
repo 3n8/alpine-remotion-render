@@ -9,16 +9,16 @@ A lightweight Alpine-based Docker image for server-side video rendering using Re
 - **FFmpeg** - With VAAPI support for hardware acceleration
 - **GPU Support** - VAAPI for AMD, Intel, and NVIDIA GPUs
 - **Supervisor** - Process management with logging
-- **User/Group Mapping** - Run as any UID:GID via environment variables
+- **User/Group Mapping** - Run as any UID:GID via docker-compose user: directive
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PUID` | 1050 | User ID to run as |
-| `PGID` | 1050 | Group ID to run as |
 | `UMASK` | 000 | File permissions mask |
 | `TZ` | UTC | Timezone (e.g., Europe/London, America/New_York) |
+
+The `user:` directive in docker-compose handles UID/GID - no environment variables needed.
 
 ## Volumes
 
