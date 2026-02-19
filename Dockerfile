@@ -24,6 +24,7 @@ RUN apk add --no-cache \
 
 COPY build/common/root/install.sh /tmp/install.sh
 COPY build/common/root/init.sh /usr/bin/init.sh
+COPY build/common/root/supervisor-remotion.conf /etc/supervisor/conf.d/remotion.conf
 
 RUN chmod +x /tmp/install.sh && /tmp/install.sh; rm -f /tmp/install.sh; \
     chmod +x /usr/bin/init.sh
