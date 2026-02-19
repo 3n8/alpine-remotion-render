@@ -11,6 +11,7 @@ ENV HOME=/home/nobody \
     TERM=xterm \
     LANG=en_GB.UTF-8 \
     REMOTION_PORT=3003 \
+    NODE_PATH=/usr/local/lib/node_modules \
     PATH=/usr/local/bin/system/scripts/docker:/usr/local/bin/run:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apk add --no-cache \
@@ -23,8 +24,11 @@ RUN apk add --no-cache \
         ca-certificates \
         curl
 
+RUN npm install -g @remotion/renderer@latest @remotion/bundler@latest
+
 COPY build/common/root/supervisord.conf /etc/supervisord.conf
 COPY build/common/root/init.sh /usr/bin/init.sh
+COPY build/common/root/server.js /config/server.js
 COPY build/common/root/supervisor-remotion.conf /etc/supervisor/conf.d/remotion.conf
 
 RUN chmod +x /tmp/install.sh && /tmp/install.sh; rm -f /tmp/install.sh; \
