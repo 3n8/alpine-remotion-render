@@ -131,6 +131,12 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
+if [[ ! -d "/run/supervisor" ]]; then
+    mkdir -p /run/supervisor
+    chmod 755 /run/supervisor
+    chown "${PUID}":"${PGID}" /run/supervisor 2>/dev/null || true
+fi
+
 REMOTION_PORT="${REMOTION_PORT:-3003}"
 
 if [[ ! -f "/config/remotion.conf" ]]; then

@@ -23,12 +23,13 @@ RUN apk add --no-cache \
         ca-certificates \
         curl
 
-COPY build/common/root/install.sh /tmp/install.sh
+COPY build/common/root/supervisord.conf /etc/supervisord.conf
 COPY build/common/root/init.sh /usr/bin/init.sh
 COPY build/common/root/supervisor-remotion.conf /etc/supervisor/conf.d/remotion.conf
 
 RUN chmod +x /tmp/install.sh && /tmp/install.sh; rm -f /tmp/install.sh; \
-    chmod +x /usr/bin/init.sh
+    chmod +x /usr/bin/init.sh && \
+    mkdir -p /run/supervisor
 
 RUN echo "export BASE_RELEASE_TAG=${RELEASETAG}" > /etc/image-build-info && \
     echo "export TARGETARCH=${TARGETARCH}" >> /etc/image-build-info && \
