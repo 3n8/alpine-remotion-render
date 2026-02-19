@@ -131,6 +131,30 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
+REMOTION_PORT="${REMOTION_PORT:-3003}"
+
+if [[ ! -f "/config/remotion.conf" ]]; then
+    echo "[info] No remotion.conf found, creating default configuration..." | ts '%Y-%m-%d %H:%M:%.S'
+    cat > /config/remotion.conf << EOF
+# Remotion API Server Configuration
+# Default configuration - created on first run
+
+# Server port
+PORT=${REMOTION_PORT}
+
+# Enable GPU acceleration (auto-detected if not specified)
+# GPU_ACCELERATION=vaapi
+EOF
+    echo "[info] Created default remotion.conf with port ${REMOTION_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+else
+    echo "[info] Found existing remotion.conf, using current configuration" | ts '%Y-%m-%d %H:%M:%.S'
+    
+    if [[ -n "${REMOTION_PORT}" ]]; then
+        echo "[info] Overriding PORT in remotion.conf with REMOTION_PORT=${REMOTION_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+        sed -i "s/^PORT=.*/PORT=${REMOTION_PORT}/" /config/remotion.conf
+    fi
+fi
+
 echo "[info] Starting Supervisor..." | ts '%Y-%m-%d %H:%M:%.S'
 
 exec 1>&3 2>&4

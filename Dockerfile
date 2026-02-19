@@ -10,6 +10,7 @@ ARG NODE_VERSION=20
 ENV HOME=/home/nobody \
     TERM=xterm \
     LANG=en_GB.UTF-8 \
+    REMOTION_PORT=3003 \
     PATH=/usr/local/bin/system/scripts/docker:/usr/local/bin/run:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 RUN apk add --no-cache \
