@@ -2,14 +2,16 @@ services:
   remotion-render:
     image: 3n88/alpine-remotion-render:latest
     container_name: remotion-render
-    user: "${PUID}:${PGID}"
     restart: always
     ports:
-      - "8000:8000"
+      - "3003:3003"
     devices:
       - /dev/dri:/dev/dri
     environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
       - UMASK=${UMASK}
       - TZ=${TZ}
+      - REMOTION_PORT=3003
     volumes:
       - ${DOCKER_HOME}/remotion-render:/config
