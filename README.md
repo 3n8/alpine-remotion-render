@@ -49,6 +49,7 @@ This image supports hardware-accelerated encoding via VAAPI. The GPU drivers com
 services:
   remotion-render:
     image: 3n88/alpine-remotion-render:latest
+    container_name: remotion-render
     restart: always
     user: "${PUID}:${PGID}"
     devices:
