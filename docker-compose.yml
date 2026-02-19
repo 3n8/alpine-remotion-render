@@ -2,8 +2,10 @@ services:
   remotion-render:
     image: 3n88/alpine-remotion-render:latest
     container_name: remotion-render
-    restart: always
     user: "${PUID}:${PGID}"
+    restart: always
+    ports:
+      - "8000:8000"
     devices:
       - /dev/dri:/dev/dri
     environment:
