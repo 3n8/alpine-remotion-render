@@ -131,8 +131,8 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
-echo "[info] Starting Supervisor as user 'nobody'..." | ts '%Y-%m-%d %H:%M:%.S'
+echo "[info] Starting Supervisor..." | ts '%Y-%m-%d %H:%M:%.S'
 
 exec 1>&3 2>&4
 
-exec /usr/bin/gosu nobody /usr/bin/supervisord -c /etc/supervisord.conf -n
+exec /usr/bin/supervisord -c /etc/supervisord.conf -n
