@@ -48,14 +48,12 @@ This image supports hardware-accelerated encoding via VAAPI. The GPU drivers com
 ```yaml
 services:
   remotion-render:
-    image: 3n8/alpine-remotion-render:latest
+    image: 3n88/alpine-remotion-render:latest
     restart: always
     user: "${PUID}:${PGID}"
     devices:
       - /dev/dri:/dev/dri
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - UMASK=${UMASK}
       - TZ=${TZ}
     volumes:
@@ -100,7 +98,7 @@ If this file already exists, it will not be overwritten.
 ## Building
 
 ```bash
-docker build -t 3n8/alpine-remotion-render:latest .
+docker build -t 3n88/alpine-remotion-render:latest .
 ```
 
 ## Image Details
