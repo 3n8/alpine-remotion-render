@@ -56,8 +56,10 @@ services:
   remotion-render:
     image: 3n88/alpine-remotion-render:latest
     container_name: remotion-render
-    restart: always
     user: "${PUID}:${PGID}"
+    restart: always
+    ports:
+      - "8000:8000"
     devices:
       - /dev/dri:/dev/dri
     environment:
@@ -84,17 +86,15 @@ This container runs a Remotion render server. To render videos, your client appl
 3. The server renders the video using FFmpeg with GPU acceleration
 4. The rendered video is returned in the response or saved to a path
 
-### Testing the API
+## Ports
 
-```bash
-# List available compositions
-curl http://localhost:8000/
+This container does not expose any ports by default - you need to expose ports based on your render application's configuration.
 
-# Render a composition (depends on your project setup)
-curl -X POST http://localhost:8000/render \
-  -H "Content-Type: application/json" \
-  -d '{"compositionId": "MyComposition", "codec": "h264"}'
-```
+If running a Remotion server, common ports are:
+- `8000` - Default for Remotion Studio
+- `3000` - Common for Node.js servers
+
+Add `ports: - "8000:8000"` to your docker-compose if your render script exposes a server.
 
 ### Custom Render Script
 
