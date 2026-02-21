@@ -1,4 +1,4 @@
-FROM 3n88/alpine-base-image:latest
+FROM ghcr.io/3n8/alpine-base-image:latest
 LABEL maintainer="3n8"
 LABEL org.opencontainers.image.source="https://github.com/3n8/alpine-remotion-render"
 

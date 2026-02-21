@@ -54,7 +54,7 @@ This image supports hardware-accelerated encoding via VAAPI. The GPU drivers com
 ```yaml
 services:
   remotion-render:
-    image: 3n88/alpine-remotion-render:latest
+    image: ghcr.io/3n8/alpine-remotion-render:latest
     container_name: remotion-render
     user: "${PUID}:${PGID}"
     restart: always
@@ -114,12 +114,12 @@ await renderMedia({
 ## Building
 
 ```bash
-docker build -t 3n88/alpine-remotion-render:latest .
+docker build -t ghcr.io/3n8/alpine-remotion-render:latest .
 ```
 
 ## Image Details
 
-- **Base**: 3n88/alpine-base-image
+- **Base**: ghcr.io/3n8/alpine-base-image
 - **Size**: ~460MB
 - **Node.js**: Latest LTS
 - **FFmpeg**: 8.x with VAAPI
