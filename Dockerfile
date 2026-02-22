@@ -26,6 +26,9 @@ RUN apk add --no-cache \
 
 RUN npm install -g @remotion/renderer@latest @remotion/bundler@latest
 
+RUN mkdir -p /config /data && \
+    chmod -R 777 /config /data
+
 COPY build/common/root/supervisord.conf /etc/supervisord.conf
 COPY build/common/root/init.sh /usr/bin/init.sh
 COPY build/common/root/server.js /config/server.js

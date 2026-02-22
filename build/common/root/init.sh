@@ -8,7 +8,8 @@ if [[ $$ -eq 1 ]]; then
     exit 1
 fi
 
-exec 3>&1 4>&2 &> >(tee -a /config/supervisord.log)
+# Try to set up logging, but continue if it fails
+exec 3>&1 4>&2 &> >(tee -a /config/supervisord.log 2>/dev/null) || exec 3>&1 4>&2
 
 source '/usr/local/bin/system/scripts/docker/utils.sh'
 
@@ -67,12 +68,11 @@ else
     echo "[info] Group 'users' already has GID '${PGID}', skipping groupmod" | ts '%Y-%m-%d %H:%M:%.S'
 fi
 
-if [[ ! -z "${UMASK}" ]]; then
+if [[ -n "${UMASK}" ]]; then
     echo "[info] UMASK defined as '${UMASK}'" | ts '%Y-%m-%d %H:%M:%.S'
     sed -i -e "s~umask.*~umask = ${UMASK}~g" /etc/supervisor/conf.d/*.conf 2>/dev/null || true
 else
-    echo "[warn] UMASK not defined (via -e UMASK), defaulting to '000'" | ts '%Y-%m-%d %H:%M:%.S'
-    sed -i -e "s~umask.*~umask = 000~g" /etc/supervisor/conf.d/*.conf 2>/dev/null || true
+    echo "[info] UMASK not set, using default" | ts '%Y-%m-%d %H:%M:%.S'
 fi
 
 if [[ ! -f "/config/perms.txt" ]]; then
@@ -112,7 +112,7 @@ if [[ ! -f "/config/perms.txt" ]]; then
         echo "[info] '/data' directory does not exist, skipping" | ts '%Y-%m-%d %H:%M:%.S'
     fi
 
-    echo "This file prevents ownership and permissions from being applied/re-applied to '/config' and '/data'" > /config/perms.txt 2>/dev/null || true
+    echo "This file prevents ownership and permissions from being applied/re-applied to '/config' and '/data'" > /config/perms.txt 2>/dev/null || echo "[info] Could not create perms.txt, skipping" | ts '%Y-%m-%d %H:%M:%.S'
 else
     echo "[info] Permissions file '/config/perms.txt' exists, skipping" | ts '%Y-%m-%d %H:%M:%.S'
 fi
@@ -147,6 +147,7 @@ REMOTION_PORT="${REMOTION_PORT:-3003}"
 
 if [[ ! -f "/config/remotion.conf" ]]; then
     echo "[info] No remotion.conf found, creating default configuration..." | ts '%Y-%m-%d %H:%M:%.S'
+    set +e
     cat > /config/remotion.conf << EOF
 # Remotion API Server Configuration
 # Default configuration - created on first run
@@ -157,13 +158,19 @@ PORT=${REMOTION_PORT}
 # Enable GPU acceleration (auto-detected if not specified)
 # GPU_ACCELERATION=vaapi
 EOF
-    echo "[info] Created default remotion.conf with port ${REMOTION_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+    config_result=$?
+    set -e
+    if (( config_result == 0 )); then
+        echo "[info] Created default remotion.conf with port ${REMOTION_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
+    else
+        echo "[warn] Could not create remotion.conf, skipping config creation" | ts '%Y-%m-%d %H:%M:%.S'
+    fi
 else
     echo "[info] Found existing remotion.conf, using current configuration" | ts '%Y-%m-%d %H:%M:%.S'
     
     if [[ -n "${REMOTION_PORT}" ]]; then
         echo "[info] Overriding PORT in remotion.conf with REMOTION_PORT=${REMOTION_PORT}" | ts '%Y-%m-%d %H:%M:%.S'
-        sed -i "s/^PORT=.*/PORT=${REMOTION_PORT}/" /config/remotion.conf
+        sed -i "s/^PORT=.*/PORT=${REMOTION_PORT}/" /config/remotion.conf 2>/dev/null || true
     fi
 fi
 
