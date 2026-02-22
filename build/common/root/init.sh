@@ -47,34 +47,6 @@ export PGID=$(id -g)
 
 echo "[info] Running as UID='${PUID}', GID='${PGID}'" | ts '%Y-%m-%d %H:%M:%.S'
 
-sed -i 's/^passwd:.*/passwd: files/' /etc/nsswitch.conf 2>/dev/null || true
-sed -i 's/^group:.*/group: files/' /etc/nsswitch.conf 2>/dev/null || true
-
-current_uid=$(id -u nobody 2>/dev/null || echo "99999")
-if [[ "${current_uid}" != "${PUID}" ]]; then
-    echo "[info] Executing usermod to match UID '${PUID}'..." | ts '%Y-%m-%d %H:%M:%.S'
-    usermod -o -u "${PUID}" nobody 2>/dev/null || true
-    echo "[info] usermod completed successfully" | ts '%Y-%m-%d %H:%M:%.S'
-else
-    echo "[info] User 'nobody' already has UID '${PUID}', skipping usermod" | ts '%Y-%m-%d %H:%M:%.S'
-fi
-
-current_gid=$(getent group users 2>/dev/null | cut -d: -f3 || echo "100")
-if [[ "${current_gid}" != "${PGID}" ]]; then
-    echo "[info] Executing groupmod to match GID '${PGID}'..." | ts '%Y-%m-%d %H:%M:%.S'
-    groupmod -o -g "${PGID}" users 2>/dev/null || true
-    echo "[info] groupmod completed successfully" | ts '%Y-%m-%d %H:%M:%.S'
-else
-    echo "[info] Group 'users' already has GID '${PGID}', skipping groupmod" | ts '%Y-%m-%d %H:%M:%.S'
-fi
-
-if [[ -n "${UMASK}" ]]; then
-    echo "[info] UMASK defined as '${UMASK}'" | ts '%Y-%m-%d %H:%M:%.S'
-    sed -i -e "s~umask.*~umask = ${UMASK}~g" /etc/supervisor/conf.d/*.conf 2>/dev/null || true
-else
-    echo "[info] UMASK not set, using default" | ts '%Y-%m-%d %H:%M:%.S'
-fi
-
 if [[ ! -f "/config/perms.txt" ]]; then
     if [[ -d "/config" ]]; then
         echo "[info] Setting ownership and permissions recursively on '/config'..." | ts '%Y-%m-%d %H:%M:%.S'
@@ -86,7 +58,7 @@ if [[ ! -f "/config/perms.txt" ]]; then
         set -e
 
         if (( exit_code_chown != 0 || exit_code_chmod != 0 )); then
-            echo "[warn] Unable to chown/chmod '/config', assuming SMB mountpoint" | ts '%Y-%m-%d %H:%M:%.S'
+            echo "[warn] Unable to chown/chmod '/config', assuming SMB/NFS mountpoint" | ts '%Y-%m-%d %H:%M:%.S'
         else
             echo "[info] Successfully set ownership and permissions on '/config'" | ts '%Y-%m-%d %H:%M:%.S'
         fi
@@ -104,7 +76,7 @@ if [[ ! -f "/config/perms.txt" ]]; then
         set -e
 
         if (( exit_code_chown != 0 || exit_code_chmod != 0 )); then
-            echo "[info] Unable to chown/chmod '/data', assuming SMB mountpoint" | ts '%Y-%m-%d %H:%M:%.S'
+            echo "[info] Unable to chown/chmod '/data', assuming SMB/NFS mountpoint" | ts '%Y-%m-%d %H:%M:%.S'
         else
             echo "[info] Successfully set ownership and permissions on '/data'" | ts '%Y-%m-%d %H:%M:%.S'
         fi
@@ -112,7 +84,7 @@ if [[ ! -f "/config/perms.txt" ]]; then
         echo "[info] '/data' directory does not exist, skipping" | ts '%Y-%m-%d %H:%M:%.S'
     fi
 
-    echo "This file prevents ownership and permissions from being applied/re-applied to '/config' and '/data'" > /config/perms.txt 2>/dev/null || echo "[info] Could not create perms.txt, skipping" | ts '%Y-%m-%d %H:%M:%.S'
+    echo "This file prevents ownership and permissions from being applied/re-applied to '/config' and '/data'" > /config/perms.txt 2>/dev/null || true
 else
     echo "[info] Permissions file '/config/perms.txt' exists, skipping" | ts '%Y-%m-%d %H:%M:%.S'
 fi
@@ -137,18 +109,15 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
-if [[ ! -d "/run/supervisor" ]]; then
-    mkdir -p /run/supervisor
-    chmod 755 /run/supervisor
-    chown "${PUID}":"${PGID}" /run/supervisor 2>/dev/null || true
-fi
+mkdir -p /config/run
+chmod 775 /config/run
 
 REMOTION_PORT="${REMOTION_PORT:-3003}"
 
 if [[ ! -f "/config/remotion.conf" ]]; then
     echo "[info] No remotion.conf found, creating default configuration..." | ts '%Y-%m-%d %H:%M:%.S'
     set +e
-    cat > /config/remotion.conf << EOF
+    cat > /config/remotion.conf << EOFCONFIG
 # Remotion API Server Configuration
 # Default configuration - created on first run
 
@@ -157,7 +126,7 @@ PORT=${REMOTION_PORT}
 
 # Enable GPU acceleration (auto-detected if not specified)
 # GPU_ACCELERATION=vaapi
-EOF
+EOFCONFIG
     config_result=$?
     set -e
     if (( config_result == 0 )); then
