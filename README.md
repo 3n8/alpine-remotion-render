@@ -19,10 +19,10 @@ This container provides a Node.js + FFmpeg environment for rendering videos usin
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `UMASK` | 000 | File permissions mask |
 | `TZ` | UTC | Timezone (e.g., Europe/London, America/New_York) |
+| `REMOTION_PORT` | 3003 | Server port |
 
-The `user:` directive in docker-compose handles UID/GID - no environment variables needed.
+The `user:` directive in docker-compose handles UID/GID.
 
 ## Volumes
 
@@ -56,15 +56,15 @@ services:
   remotion-render:
     image: ghcr.io/3n8/alpine-remotion-render:latest
     container_name: remotion-render
-    user: "${PUID}:${PGID}"
     restart: always
+    user: "${PUID}:${PGID}"
     ports:
-      - "8000:8000"
+      - "3003:3003"
     devices:
       - /dev/dri:/dev/dri
     environment:
-      - UMASK=${UMASK}
       - TZ=${TZ}
+      - REMOTION_PORT=3003
     volumes:
       - ${DOCKER_HOME}/remotion-render:/config
 ```
@@ -88,13 +88,9 @@ This container runs a Remotion render server. To render videos, your client appl
 
 ## Ports
 
-This container does not expose any ports by default - you need to expose ports based on your render application's configuration.
+The default port is **3003**. You can change this using the `REMOTION_PORT` environment variable.
 
-If running a Remotion server, common ports are:
-- `8000` - Default for Remotion Studio
-- `3000` - Common for Node.js servers
-
-Add `ports: - "8000:8000"` to your docker-compose if your render script exposes a server.
+Add `ports: - "3003:3003"` to your docker-compose to expose the port.
 
 ### Custom Render Script
 
