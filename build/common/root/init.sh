@@ -109,8 +109,10 @@ fi
 echo "[info] Checking VAAPI..." | ts '%Y-%m-%d %H:%M:%.S'
 vainfo 2>/dev/null | ts '%Y-%m-%d %H:%M:%.S' || echo "[info] vainfo not available" | ts '%Y-%m-%d %H:%M:%.S'
 
-mkdir -p /config/run
-chmod 775 /config/run
+set +e
+mkdir -p /config/run 2>/dev/null
+chmod 775 /config/run 2>/dev/null
+set -e
 
 REMOTION_PORT="${REMOTION_PORT:-3003}"
 
