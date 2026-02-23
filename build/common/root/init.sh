@@ -15,10 +15,15 @@ source '/usr/local/bin/system/scripts/docker/utils.sh'
 
 cat << "EOF"
 Remotion Render Node
- _ __      _             _ 
-| '_|____| |___  ___   | |
-| |/ __| / _ \/ _ \   |_|
-|_|\__|_|\___/\___/   (_)
+    _____            ___  
+    |___ /   _ __    ( _ ) 
+     |_ \  | '_ \   / _ \ 
+    ___) | | | | | | (_) |
+   |____/  |_| |_|  \___/ 
+   https://github.com/3n8
+
+
+
 EOF
 
 source '/etc/image-build-info'
